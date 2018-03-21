@@ -35,12 +35,15 @@ function myPdo() {
 
 function addCoups($idParent, $coupValue, $idUser) {
     $db = myPdo();
-    $sql = "INSERT INTO coups(idParent, CoupValue, idUser) VALUES (:idParent,:coupValue, :idUser); SELECT LAST_INSERT_ID();";
+    $sql = "INSERT INTO coups(idParent, CoupValue, idUser) VALUES (:idParent,:coupValue, :idUser);";
+    $sql2 = "SELECT LAST_INSERT_ID();";
     $request = $db->prepare($sql);
     $request->execute(array("idParent" => $idParent,
         "coupValue" => $coupValue,
         "idUser" => $idUser));
-    return $request->fetch()[0];
+    $request2=$db->prepare($sql2);
+    $request2->execute();
+    return $request2->fetch()[0];
 }
 
 function FirstCoup($idGame, $coupValue, $idUser){
