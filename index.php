@@ -59,6 +59,34 @@ function CoupIA() {
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <script>
+            $('.game_bar > span').click(function () {
+                $(this).addClass('active').siblings().removeClass('active');
+                $(this).parent().attr('data-rating-value', $(this).data('rating-value'));
+            });
+        </script>
+        <style>
+            #game_bar {
+                width:100px;
+                height:100px;
+                margin: 4px 175px !important;
+                display:inline-block;
+                display:inline;
+            }
+            #game_bar > span:before {
+                content:'O';
+                color: #c7c5c5;
+                cursor:pointer;
+                font-size:3em;
+            }
+            #game_bar:hover > span:before {
+                color: #4bce32;
+            }
+
+            #game_bar > span:hover ~ span:before{
+                color: #c7c5c5;
+            }
+        </style>
     </head>
     <body class='container' style="background-color: #F17F03;">
         <noscript><p>Please enable javascript for this site to work properly</p><style>
@@ -126,19 +154,20 @@ function CoupIA() {
                 <div class="col-md-12 col-xs-12">
                     <form method="POST">
                         <input class="btn btn-default" type="submit" value="Nouvelle partie" name="newGame">
-                        <?php if ($_SESSION["inGame"]) {
-                            for ($i = 0; $i < $_SESSION["nbBilles"]; $i++) {
-                                ?>
-                        <img src="images/bille.png" alt="bille" style="height: 50px; width: 50px;">
-                                <?php }
-                                ?>
+                        <?php if ($_SESSION["inGame"]) { ?>
 
-                                <input class="btn btn-default" type="submit" value="1" name="1bille">
-                                <input class="btn btn-default" type="submit" value="2" name="2billes">
-                                <input class="btn btn-default" type="submit" value="3" name="3billes"><?php } ?>
-                        </form>
-                        <p class="text-center"><?= ($_SESSION["inGame"] ? $_SESSION["nbBilles"] : "") ?><?= (isset($gagnant) ? $gagnant : "") ?></p>
 
+                            <input class="btn btn-default" type="submit" value="1" name="1bille">
+                            <input class="btn btn-default" type="submit" value="2" name="2billes">
+                            <input class="btn btn-default" type="submit" value="3" name="3billes"><?php } ?>
+                    </form>
+                    <p class="text-center"><?= ($_SESSION["inGame"] ? $_SESSION["nbBilles"] : "") ?><?= (isset($gagnant) ? $gagnant : "") ?></p>
+                   <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+                    <div id="game_bar"> 
+                        <?php for ($i = 0; $i < $_SESSION["nbBilles"]; $i++) { ?>
+                            <span data-rating-value="1"></span>
+                        <?php } ?>
+                    </div>
                 </div> 
             </div>
 
