@@ -53,8 +53,11 @@ function FirstCoup($idGame, $coupValue, $idUser){
 
 function newGame($nbBilles) {
     $db = myPdo();
-    $sql = "INSERT INTO games(NbBilles) VALUES (:nbBilles); SELECT LAST_INSERT_ID();";
+    $sql = "INSERT INTO games(NbBilles) VALUES (:nbBilles);";
+    $sql2 = "SELECT LAST_INSERT_ID();";
     $request = $db->prepare($sql);
     $request->execute(array("nbBilles" => $nbBilles));
-    return $request->fetch()[0];
+    $request2=$db->prepare($sql2);
+    $request2->execute();
+    return $request2->fetch()[0];
 }
