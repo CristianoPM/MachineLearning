@@ -3,7 +3,7 @@
 //-------------------------------------------------------------------------------------------
 // Examen à blanc du module M151 - Janvier 2018
 // 
-// Auteur      : Cristiano Pereira kiadz
+// Auteur      : Cristiano Pereira kiadz simcir
 // Classe      : I-FA-P3B
 // Date        : 2018/01/31
 // Projet      : Jeu de NIM
@@ -63,4 +63,13 @@ function newGame($nbBilles) {
     $request2=$db->prepare($sql2);
     $request2->execute();
     return $request2->fetch()[0];
+}
+function getCoupsPrecedent($game){
+    // Retourne un tableau avec les valeurs des coups 
+}
+function getGamesFromCoupsAndWinner($coupsPrecedents, $joueur1Won){
+    // Retourne les parties qui ont les mêmes coups précédents et où le joueur 1/2 (selon la valeur de $joueur1Won) a gagné
+}
+function getCoupSuivant($game, $nbCoups){
+    // Retourne le coup suivant de la partie spécifiée
 }
