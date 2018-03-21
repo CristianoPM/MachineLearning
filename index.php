@@ -32,9 +32,9 @@ if ($_SESSION["inGame"] && !$_SESSION["joueur1"]) {
 function PrendBilles($nb) {
     $_SESSION["nbBilles"] -= $nb;
     if ($_SESSION["LastCoup"] === NULL) {
-        addCoups($_SESSION["LastCoup"], $nb, ($_SESSION["joueur1"] ? "1" : "2"));
+        $_SESSION["LastCoup"] = FirstCoup($_SESSION["idGame"], $nb, ($_SESSION["joueur1"] ? "1" : "2"));
     } else {
-        FirstCoups($_SESSION["idGame"], $nb, ($_SESSION["joueur1"] ? "1" : "2"));
+        $_SESSION["LastCoup"] = addCoups($_SESSION["LastCoup"], $nb, ($_SESSION["joueur1"] ? "1" : "2"));
     }
     $_SESSION["joueur1"] = !$_SESSION["joueur1"];
     CheckEndGame();
@@ -126,12 +126,19 @@ function CoupIA() {
                 <div class="col-md-12 col-xs-12">
                     <form method="POST">
                         <input class="btn btn-default" type="submit" value="Nouvelle partie" name="newGame">
-                        <?php if ($_SESSION["inGame"]) { ?>
-                            <input class="btn btn-default" type="submit" value="1" name="1bille">
-                            <input class="btn btn-default" type="submit" value="2" name="2billes">
-                            <input class="btn btn-default" type="submit" value="3" name="3billes"><?php } ?>
-                    </form>
-                    <p class="text-center"><?= ($_SESSION["inGame"] ? $_SESSION["nbBilles"] : "") ?><?= (isset($gagnant) ? $gagnant : "") ?></p>
+                        <?php if ($_SESSION["inGame"]) {
+                            for ($i = 0; $i < $_SESSION["nbBilles"]; $i++) {
+                                ?>
+                        <img src="images/bille.png" alt="bille" style="height: 50px; width: 50px;">
+                                <?php }
+                                ?>
+
+                                <input class="btn btn-default" type="submit" value="1" name="1bille">
+                                <input class="btn btn-default" type="submit" value="2" name="2billes">
+                                <input class="btn btn-default" type="submit" value="3" name="3billes"><?php } ?>
+                        </form>
+                        <p class="text-center"><?= ($_SESSION["inGame"] ? $_SESSION["nbBilles"] : "") ?><?= (isset($gagnant) ? $gagnant : "") ?></p>
+
                 </div> 
             </div>
 

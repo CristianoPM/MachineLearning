@@ -47,11 +47,17 @@ function addCoups($idParent, $coupValue, $idUser) {
 }
 
 function FirstCoup($idGame, $coupValue, $idUser){
+    $db = myPdo();
     $idCoup = addCoups(NULL, $coupValue, $idUser);
-    $sql = "UPDATE games SET idPremierCoup=:idPremierCoup WHERE idGame = : idGame;";
+    $sql = "UPDATE games SET idPremierCoup=:idPremierCoup WHERE idGame = :idGame;";
     $request = $db->prepare($sql);
     $request->execute(array("idPremierCoup" => $idCoup,
         "idGame" => $idGame));
+    
+    $sql2 = "SELECT LAST_INSERT_ID();";
+    $request2=$db->prepare($sql2);
+    $request2->execute();
+    return $request2->fetch()[0];
 }
 
 function newGame($nbBilles) {
