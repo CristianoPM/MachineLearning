@@ -177,6 +177,7 @@ function CheckEndGame() {
 }
 
 function iAPrendBilles() {
-    PrendBilles(rand(1, 3));
-// CoupIA($_SESSION["joueur1"], getCoups($_SESSION["idGame"]));
+   $v =  rand(1, 3);
+   $v = CoupIA($_SESSION["joueur1"], getCoups($_SESSION["idGame"]));
+   PrendBilles($v);
 }
