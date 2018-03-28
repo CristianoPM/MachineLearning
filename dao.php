@@ -78,9 +78,10 @@ function newGame($nbBilles) {
     $request2->execute();
     return $request2->fetch()[0];
 }
+<<<<<<< HEAD
 
 function getLastCoup($game) {
-    // Retourne un tableau avec les valeurs des coups
+    // Retourne un tableau avec les valeurs des coups [1, 2]
     return end(getCoups($game));
 }
 
