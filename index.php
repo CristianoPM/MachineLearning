@@ -10,45 +10,27 @@ if (filter_has_var(INPUT_POST, "newGame")) {
     $_SESSION["LastCoup"] = NULL;
     $_SESSION["idGame"] = newGame($_SESSION["nbBilles"], NULL);
 }
-// $inGame = (isset($_SESSION["inGame"]) ? $_SESSION["inGame"] : FALSE);
-
-if ($_SESSION["inGame"] && $_SESSION["joueur1"]) {
-    if (filter_has_var(INPUT_POST, "1bille")) {
-        PrendBilles(1);
-    } elseif (filter_has_var(INPUT_POST, "2billes")) {
-        PrendBilles(2);
-    } elseif (filter_has_var(INPUT_POST, "3billes")) {
-        PrendBilles(3);
+if ($_SESSION["inGame"]) {
+    if ($_SESSION["joueur1"]) {
+        if (filter_has_var(INPUT_POST, "1bille")) {
+            PrendBilles(1);
+        } elseif (filter_has_var(INPUT_POST, "2billes")) {
+            PrendBilles(2);
+        } elseif (filter_has_var(INPUT_POST, "3billes")) {
+            PrendBilles(3);
+        }
+    } if(!$_SESSION["joueur1"]) {
+        iAPrendBilles();
     }
-} elseif (!$_SESSION["inGame"]) {
-    $gagnant = "LE" . (!$_SESSION["joueur1"] ? " IA " : " JOUEUR 1 ") . "A GAGNÉ !";
-}
-if ($_SESSION["inGame"] && !$_SESSION["joueur1"]) {
-    CoupIA();
-} elseif (!$_SESSION["inGame"]) {
-    $gagnant = "LE" . (!$_SESSION["joueur1"] ? " IA " : " JOUEUR 1 ") . "A GAGNÉ !";
-}
-
-function PrendBilles($nb) {
-    $_SESSION["nbBilles"] -= $nb;
-    if ($_SESSION["LastCoup"] === NULL) {
-        $_SESSION["LastCoup"] = FirstCoup($_SESSION["idGame"], $nb, ($_SESSION["joueur1"] ? "1" : "2"));
+} else {
+    if (!$_SESSION["joueur1"]) {
+        $gagnant = "L'IA";
+        setJoueur1Won(FALSE, $_SESSION["idGame"]);
     } else {
-        $_SESSION["LastCoup"] = addCoups($_SESSION["LastCoup"], $nb, ($_SESSION["joueur1"] ? "1" : "2"));
+        $gagnant = "LE JOUEUR 1";
+        setJoueur1Won(TRUE, $_SESSION["idGame"]);
     }
-    $_SESSION["joueur1"] = !$_SESSION["joueur1"];
-    CheckEndGame();
-}
-
-function CheckEndGame() {
-    if ($_SESSION["nbBilles"] <= 0) {
-        $_SESSION["inGame"] = FALSE;
-        header("Refresh:0");
-    }
-}
-
-function CoupIA() {
-    PrendBilles(rand(1, 3));
+    $gagnant = "$gagnant A GAGNÉ !";
 }
 ?><!DOCTYPE html>
 <html>
@@ -110,7 +92,7 @@ function CoupIA() {
                         <ul class="nav navbar-nav">
                             <li><a href="index.php" style="color: white;">Accueil</a></li>
                         </ul>
-                        <?php //}       ?>
+                        <?php //}        ?>
                     </div><!--/.nav-collapse -->
                 </div><!--/.container-fluid -->
             </nav>
@@ -162,7 +144,7 @@ function CoupIA() {
                             <input class="btn btn-default" type="submit" value="3" name="3billes"><?php } ?>
                     </form>
                     <p class="text-center"><?= ($_SESSION["inGame"] ? $_SESSION["nbBilles"] : "") ?><?= (isset($gagnant) ? $gagnant : "") ?></p>
-                   <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+                    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
                     <div id="game_bar"> 
                         <?php for ($i = 0; $i < $_SESSION["nbBilles"]; $i++) { ?>
                             <span data-rating-value="1"></span>

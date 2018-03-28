@@ -41,21 +41,29 @@ function addCoups($idParent, $coupValue, $idUser) {
     $request->execute(array("idParent" => $idParent,
         "coupValue" => $coupValue,
         "idUser" => $idUser));
-    $request2=$db->prepare($sql2);
+    $request2 = $db->prepare($sql2);
     $request2->execute();
     return $request2->fetch()[0];
 }
 
-function FirstCoup($idGame, $coupValue, $idUser){
+function setJoueur1Won($won, $idGame) {
+    $db = myPdo();
+    $sql = "UPDATE games SET joueur1Won=:won WHERE idGame = :idGame;";
+    $request = $db->prepare($sql);
+    $request->execute(array("won" => $won,
+        "idGame" => $idGame));
+}
+
+function FirstCoup($idGame, $coupValue, $idUser) {
     $db = myPdo();
     $idCoup = addCoups(NULL, $coupValue, $idUser);
     $sql = "UPDATE games SET idPremierCoup=:idPremierCoup WHERE idGame = :idGame;";
     $request = $db->prepare($sql);
     $request->execute(array("idPremierCoup" => $idCoup,
         "idGame" => $idGame));
-    
+
     $sql2 = "SELECT LAST_INSERT_ID();";
-    $request2=$db->prepare($sql2);
+    $request2 = $db->prepare($sql2);
     $request2->execute();
     return $request2->fetch()[0];
 }
@@ -66,16 +74,64 @@ function newGame($nbBilles) {
     $sql2 = "SELECT LAST_INSERT_ID();";
     $request = $db->prepare($sql);
     $request->execute(array("nbBilles" => $nbBilles));
-    $request2=$db->prepare($sql2);
+    $request2 = $db->prepare($sql2);
     $request2->execute();
     return $request2->fetch()[0];
 }
-function getCoupsPrecedent($game){
-    // Retourne un tableau avec les valeurs des coups 
+
+function getLastCoup($game) {
+    // Retourne un tableau avec les valeurs des coups
+    return end(getCoups($game));
 }
-function getGamesFromCoupsAndWinner($coupsPrecedents, $joueur1Won){
+
+function getGamesFromCoupsWinnerAndNbBilles($coupsPrecedents, $joueur1Won, $nbBilles, $similarGames) {
     // Retourne les parties qui ont les mêmes coups précédents et où le joueur 1/2 (selon la valeur de $joueur1Won) a gagné
+    $connection = myPdo();
+    if ($similarGames === FALSE) {
+        $stmt = "SELECT idGame FROM games g, coups c WHERE joueur1Won=$joueur1Won AND nbBilles=$nbBilles AND CoupValue=$coupsPrecedents[0]";
+    } else {
+        $stmt = "SELECT idGame FROM games g, coups c WHERE joueur1Won=$joueur1Won AND nbBilles=$nbBilles AND CoupValue=$coupsPrecedents[0] AND idGame IN (" . implode(", ", $similarGames) . ")";
+    }
+    $request = $connection->query($stmt);
+    $games = $request->fetchAll(PDO::FETCH_NUM);
+    foreach ($games as $id => $game) {
+        if (getCoupSuivant($game, $i++)) {
+            unset($games[$id]);
+        }
+    }
+    return $games;
 }
-function getCoupSuivant($game, $nbCoups){
+
+function getCoupSuivant($game, $nbCoups) {
     // Retourne le coup suivant de la partie spécifiée
+    $coups = getCoups($game);
+    return $coups[$nbCoups];
+}
+
+function getCoups($idGame) {
+    // Retourne tous les coups d'une partie
+    
+}
+
+function PrendBilles($nb) {
+    $_SESSION["nbBilles"] -= $nb;
+    if ($_SESSION["LastCoup"] === NULL) {
+        $_SESSION["LastCoup"] = FirstCoup($_SESSION["idGame"], $nb, ($_SESSION["joueur1"] ? "1" : "2"));
+    } else {
+        $_SESSION["LastCoup"] = addCoups($_SESSION["LastCoup"], $nb, ($_SESSION["joueur1"] ? "1" : "2"));
+    }
+    $_SESSION["joueur1"] = !$_SESSION["joueur1"];
+    CheckEndGame();
+}
+
+function CheckEndGame() {
+    if ($_SESSION["nbBilles"] <= 0) {
+        $_SESSION["inGame"] = FALSE;
+        header("Refresh:0");
+    }
+}
+
+function iAPrendBilles() {
+    PrendBilles(rand(1, 3));
+    // CoupIA($_SESSION["joueur1"], getCoups($_SESSION["idGame"]));
 }
