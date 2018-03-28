@@ -2,7 +2,6 @@
 session_start();
 
 require_once 'dao.php';
-
 if (filter_has_var(INPUT_POST, "newGame")) {
     $_SESSION["inGame"] = TRUE;
     $_SESSION["nbBilles"] = 5;
@@ -10,6 +9,7 @@ if (filter_has_var(INPUT_POST, "newGame")) {
     $_SESSION["LastCoup"] = NULL;
     $_SESSION["idGame"] = newGame($_SESSION["nbBilles"], NULL);
 }
+
 if (isset($_SESSION["inGame"])) {
     if ($_SESSION["inGame"]) {
         if ($_SESSION["joueur1"]) {
@@ -21,9 +21,9 @@ if (isset($_SESSION["inGame"])) {
                 PrendBilles(3);
             }
         } if (!$_SESSION["joueur1"]) {
-            iAPrendBilles();
+        iAPrendBilles();
         }
-    } else {
+    }else {
         if (!$_SESSION["joueur1"]) {
             $gagnant = "L'IA";
             setJoueur1Won(FALSE, $_SESSION["idGame"]);
@@ -33,6 +33,9 @@ if (isset($_SESSION["inGame"])) {
         }
         $gagnant = "$gagnant A GAGNÉ !";
     }
+}
+if (filter_has_var(INPUT_POST, "endGame")) {
+    $gagnant = NULL;
 }
 ?><!DOCTYPE html>
 <html>
@@ -48,12 +51,18 @@ if (isset($_SESSION["inGame"])) {
                 $(this).addClass('active').siblings().removeClass('active');
                 $(this).parent().attr('data-rating-value', $(this).data('rating-value'));
             });
+
+            function play(value) {
+                if (value > 3) {
+                    value = 3;
+                }
+                alert(value + " bille(s)");
+            }
         </script>
         <style>
             #game_bar {
                 width:100px;
                 height:100px;
-                margin: 4px 175px !important;
                 display:inline-block;
                 display:inline;
             }
@@ -137,31 +146,31 @@ if (isset($_SESSION["inGame"])) {
             <div class="col-md-12 col-xs-12" style="background-color: #ff9f37; border-radius: 5px; margin-top: 20px; height: 400px;">
                 <div class="col-md-12 col-xs-12">
                     <form method="POST">
-                        <div class="col-md-4 col-md-offset-4">
-                            <h1 style="text-align:center;">Nouvelle partie</h1>
-                            <input class="btn btn-default center-block" type="submit" value="Joueur vs IA" name="newGame" style="width: 200px; height: 50px; background-color: #F17F03; color: white; border: none; border-radius: 50px; font-size: 20px;"> <br>
-                            <input class="btn btn-default center-block" type="submit" value="Joueur vs Joueur" name="" style="width: 200px; height: 50px; background-color: #F17F03; color: white; border: none; border-radius: 50px; font-size: 20px;"disabled=""> <br>
-                            <input class="btn btn-default center-block" type="submit" value="IA vs IA" name="" style="width: 200px; height: 50px; background-color: #F17F03; color: white; border: none; border-radius: 50px; font-size: 20px;"disabled="">
-                        </div>
 
-                        <?php if (isset($_SESSION["inGame"]) && $_SESSION["inGame"]) { ?>
-                            <input class="btn btn-default" type="submit" value="1" name="1bille">
-                            <input class="btn btn-default" type="submit" value="2" name="2billes">
-                            <input class="btn btn-default" type="submit" value="3" name="3billes"><?php } ?>
+                        <div class="col-md-4 col-md-offset-4">
+                            <?php if (!$_SESSION["inGame"] /* && !(isset($gagnant)) */) { ?>
+                                <h1 style="text-align:center;">Nouvelle partie</h1><br>
+                                <input class="btn btn-default center-block" type="submit" value="Joueur vs IA" name="newGame" style="width: 200px; height: 50px; background-color: #F17F03; color: white; border: none; border-radius: 50px; font-size: 20px;"> <br>
+                                <input class="btn btn-default center-block" type="submit" value="Joueur vs Joueur" name="" style="width: 200px; height: 50px; background-color: #F17F03; color: white; border: none; border-radius: 50px; font-size: 20px;"disabled=""> <br>
+                                <input class="btn btn-default center-block" type="submit" value="IA vs IA" name="" style="width: 200px; height: 50px; background-color: #F17F03; color: white; border: none; border-radius: 50px; font-size: 20px;"disabled="">
+                            <?php } else if (isset($gagnant)) { ?>
+                                <h1 style="text-align:center;"><?php echo $gagnant; ?></h1><br>
+                                <input class="btn btn-default center-block" type="submit" value="Menu principal" name="endGame" style="width: 200px; height: 50px; background-color: #F17F03; color: white; border: none; border-radius: 50px; font-size: 20px;"> <br>
+                            <?php } if ($_SESSION["inGame"]) { ?>
+                                <h1 style="text-align:center;">Joueur 1...</h1><br>
+                                <div id="game_bar"> 
+                                    <?php for ($i = 1; $i <= $_SESSION["nbBilles"]; $i++) { ?>
+                                        <span data-rating-value="1" onclick="play(<?php echo $i ?>);"></span>
+                                    <?php } ?>
+                                </div><br>
+                                <input class="btn btn-default" type="submit" value="1" name="1bille">
+                                <input class="btn btn-default" type="submit" value="2" name="2billes">
+                                <input class="btn btn-default" type="submit" value="3" name="3billes">
+                                <p class="text-center"><?= ($_SESSION["inGame"] ? $_SESSION["nbBilles"] : "") ?></p>
+                            <?php } ?>
+                        </div>
                     </form>
-                    <!--<p class="text-center"><?= ((isset($_SESSION["inGame"]) && $_SESSION["inGame"]) ? $_SESSION["nbBilles"] : "") ?><?= (isset($gagnant) ? $gagnant : "") ?></p>-->
                     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-                    <div id="game_bar"> 
-                        <?php
-                        if (isset($_SESSION["inGame"]) && $_SESSION["inGame"]) {
-                            for ($i = 0; $i < $_SESSION["nbBilles"]; $i++) {
-                                ?>
-                                <span data-rating-value="1"></span>
-                                <?php
-                            }
-                        }
-                        ?>
-                    </div>
                 </div> 
             </div>
 
