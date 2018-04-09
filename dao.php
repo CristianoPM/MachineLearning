@@ -18,7 +18,7 @@ function myPdo() {
     static $db = NULL;
     try {
         if ($db == NULL) {
-            $db = new PDO('mysql:host=localhost;dbname=nimgame;charset=utf8', 'root', '', array(
+            $db = new PDO('mysql:host=127.0.0.1;dbname=nimgame;charset=utf8', 'root', '', array(
                 PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
                 PDO::ATTR_PERSISTENT => true,
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -47,6 +47,8 @@ function addCoups($idParent, $coupValue, $idUser) {
 }
 
 function setJoueur1Won($won, $idGame) {
+    $_SESSION = array();
+    session_destroy();
     $db = myPdo();
     $sql = "UPDATE games SET joueur1Won=:won WHERE idGame = :idGame;";
     $request = $db->prepare($sql);
@@ -87,16 +89,21 @@ function getLastCoup($game) {
 function getGamesFromCoupsWinnerAndNbBilles($coupsPrecedents, $joueur1Won, $nbBilles, $similarGames) {
 // Retourne les parties qui ont les mêmes coups précédents et où le joueur 1/2 (selon la valeur de $joueur1Won) a gagné
     $connection = myPdo();
+    $joueur1Won = ($joueur1Won ? "TRUE" : "FALSE");
     if ($similarGames === FALSE) {
-        $stmt = "SELECT idGame FROM games g, coups c WHERE joueur1Won=$joueur1Won AND nbBilles=$nbBilles AND CoupValue=$coupsPrecedents[0]";
+        $stmt = "SELECT idGame FROM games g, coups c WHERE joueur1Won=$joueur1Won AND nbBilles=$nbBilles AND CoupValue=$coupsPrecedents[0] AND idPremierCoup = idCoup;";
     } else {
-        $stmt = "SELECT idGame FROM games g, coups c WHERE joueur1Won=$joueur1Won AND nbBilles=$nbBilles AND CoupValue=$coupsPrecedents[0] AND idGame IN (" . implode(", ", $similarGames) . ")";
+        $stmt = "SELECT idGame FROM games g, coups c WHERE joueur1Won=$joueur1Won AND nbBilles=$nbBilles AND CoupValue=$coupsPrecedents[0] AND idPremierCoup = idCoup AND idGame IN (" . implode(", ", $similarGames) . ")";
     }
     $request = $connection->query($stmt);
     $games = $request->fetchAll(PDO::FETCH_NUM);
+    $i = 0;
     foreach ($games as $id => $game) {
-        if (getCoupSuivant($game, $i++)) {
+        if (getCoupSuivant($game, $i) != $coupsPrecedents[$i++]) {
             unset($games[$id]);
+        }
+        if (!isset($coupsPrecedents[$i])) {
+            break;
         }
     }
     return $games;
@@ -104,7 +111,12 @@ function getGamesFromCoupsWinnerAndNbBilles($coupsPrecedents, $joueur1Won, $nbBi
 
 function getCoupSuivant($game, $nbCoups) {
 // Retourne le coup suivant de la partie spécifiée
-    $coups = getCoups($game);
+    $coups = getCoups($game[0]);
+    //echo '<pre>';var_dump($game);exit;
+    /*echo '<pre>';
+    var_dump($game);
+    var_dump($coups);
+    echo '</pre>';*/
     return $coups[$nbCoups];
 }
 
@@ -116,24 +128,27 @@ function getCoups($idGame) {
         $_SESSION["games"] = getAllGames();
     }
     $game = NULL;
+    //echo '<pre>';
+    // var_dump($_SESSION["games"]);echo '</pre>';exit;
     foreach ($_SESSION["games"] as $value) {
-        if ($value["idParent"] === $idGame) {
+        if ($value["idGame"] === $idGame) {
             $game = $value;
         }
     }
     $coups = array();
-    if ($game != NULL) {
+    if ($game !== NULL) {
         foreach ($_SESSION["coups"] as $value) {
             if ($value["idCoup"] == $game["idPremierCoup"]) {
-                $coups[0] = $value["idCoup"];
+                $idParent = $value["idCoup"];
+                $coups[0] = $value["CoupValue"];
+                break;
             }
         }
-        $idParent = $coups[0];
         do {
             $end = TRUE;
             foreach ($_SESSION["coups"] as $value) {
                 if ($idParent == $value["idParent"]) {
-                    $coups[] = $value["idCoup"];
+                    $coups[] = $value["CoupValue"];
                     $idParent = $value["idCoup"];
                     $end = FALSE;
                 }
@@ -177,7 +192,26 @@ function CheckEndGame() {
 }
 
 function iAPrendBilles() {
-   $v =  rand(1, 3);
-   $v = CoupIA($_SESSION["joueur1"], getCoups($_SESSION["idGame"]));
-   PrendBilles($v);
+    //$v = rand(1, 3);
+    $v = CoupIA($_SESSION["joueur1"], getCoups($_SESSION["idGame"]), 5);
+    PrendBilles($v);
+}
+
+function CoupIA($joueur1, $coupsPrecedents, $nbBillesInitial) {
+    $games = getGamesFromCoupsWinnerAndNbBilles($coupsPrecedents, $joueur1, $nbBillesInitial, isset($_SESSION["similarGames"]) ? $_SESSION["similarGames"] : FALSE);
+    $_SESSION["similarGames"] = $games;
+    if (!empty($games)) {
+        $coupPossibles = array();
+        foreach ($games as $game) {
+            $coupPossibles[] = getCoupSuivant($game, count($coupsPrecedents));
+        }
+        $coupPossibles[] = 1;
+        $coupPossibles[] = 2;
+        $coupPossibles[] = 3;
+        $rand = array_rand($coupPossibles);
+        var_dump($rand);
+        return $rand;
+    } else {
+        return rand(1, 3);
+    }
 }
